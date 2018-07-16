@@ -5,7 +5,7 @@ import pandas
 
 earnings = 5361876000
 EPS = 0.21
-sharesoutstanding = 25090311730
+sharesoutstanding = 25090311730.0
 
 # hector	->	6HBVTBNERFR7WLAJ
 # herry		->	1DPT9DATB5J89COD
@@ -23,19 +23,19 @@ data['P/E'] = data['5. adjusted close'] / EPS
 # hkd money volumn
 data['HKD volume'] = data['6. volume'] * data['5. adjusted close']
 # usd money volumn
-hkdUsd = ForeignExchange(key=keys[1])
+hkdUsd = ForeignExchange(key=keys[0])
 usd_hkd_data,_ = hkdUsd.get_currency_exchange_rate(from_currency='HKD', to_currency='USD')
 usd_hkd = usd_hkd_data['5. Exchange Rate']
 data['USD volume'] = data['HKD volume'] * float(usd_hkd)
 
 # rmb money volume
-hkdRmb = ForeignExchange(key=keys[2])
-rmb_hkd_data, _ = hkdRmb.get_currency_exchange_rate(from_currency='HKD', to_currency='RMB')
-rmb_hkd = usd_hkd_data['5. Exchange Rate']
-data['RMB volume'] = data['HKD volume'] * float(rmb_hkd)
+# hkdRmb = ForeignExchange(key=keys[0])
+# rmb_hkd_data, _ = hkdRmb.get_currency_exchange_rate(from_currency='HKD', to_currency='RMB')
+# rmb_hkd = usd_hkd_data['5. Exchange Rate']
+# data['RMB volume'] = data['HKD volume'] * float(rmb_hkd)
 
 # Market Cap(USD)
-data['Market Cap(USD)'] = data['5. adjusted close'] * sharesoutstanding * usd_hkd
+data['Market Cap(USD)'] = data['5. adjusted close'] * sharesoutstanding * float(usd_hkd)
 
 # Save as CSV
 path = os.getcwd().replace('\\','/')+'/01810.csv'
