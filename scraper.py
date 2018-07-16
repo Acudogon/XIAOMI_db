@@ -18,23 +18,23 @@ def process_num(s, unit):
 	return s
 
 def get_historical_data(name, number_of_days):
-    url = "https://finance.yahoo.com/quote/" + name + "/history/"
+	url = "https://finance.yahoo.com/quote/" + name + "/history/"
 
-    rows = bs(urllib2.urlopen(url).read()).findAll('table')[0].tbody.findAll('tr')
-    info = {'Date':[], 'Open':[], 'High':[], 'Low':[], 'Close':[]}
-    for each_row in rows:
-    	if len(info['Date']) >= number_of_days:
-    		break
-        divs = each_row.findAll('td')
-        info['Date'].append(str(divs[0].span.text))
-        info['Open'].append(str(divs[1].span.text))
-        info['High'].append(str(divs[2].span.text))
-        info['Low'].append(str(divs[3].span.text))
-        info['Close'].append(str(divs[4].span.text))
-    for key in info:
-    	xiaomi[key] = info[key]
-    xiaomi.set_index('Date')
-    return xiaomi
+	rows = bs(urllib2.urlopen(url).read()).findAll('table')[0].tbody.findAll('tr')
+	info = {'Date':[], 'Open':[], 'High':[], 'Low':[], 'Close':[]}
+	for each_row in rows:
+		if len(info['Date']) >= number_of_days:
+			break
+		divs = each_row.findAll('td')
+		info['Date'].append(str(divs[0].span.text))
+		info['Open'].append(str(divs[1].span.text))
+		info['High'].append(str(divs[2].span.text))
+		info['Low'].append(str(divs[3].span.text))
+		info['Close'].append(str(divs[4].span.text))
+	for key in info:
+		xiaomi[key] = info[key]
+	xiaomi.set_index('Date')
+	return xiaomi
 
 def get_stats(name):
 	url = "https://finance.yahoo.com/quote/" + name + "/key-statistics?p=" + name
