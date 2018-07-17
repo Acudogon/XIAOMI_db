@@ -96,7 +96,6 @@ def get_rev(name):
 			line[2].append(process_num(str(divs[3].text),'K'))
 			counter += 1
 		idx += 1
-	print line
 	tmp = [np.nan for i in xrange(len(xiaomi))]
 	for e in line:
 		tmp[0] = e[1]
@@ -110,4 +109,4 @@ get_stats('1810.HK')
 get_rev('1810.HK')
 print xiaomi
 path = os.getcwd().replace('\\','/')+'/1810hk.csv'
-xiaomi.to_csv(path)
+xiaomi.to_csv(path, index=False)
