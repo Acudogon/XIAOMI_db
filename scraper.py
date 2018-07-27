@@ -27,7 +27,7 @@ def process_num(s, unit):
 	return s
 
 def get_historical_data(name, number_of_days):
-	url = "https://finance.yahoo.com/quote/" + name + "/history/"
+	url = "https://finance.yahoo.com/quote/" + name + "/history?p=" + name
 
 	rows = bs(urllib2.urlopen(url).read()).findAll('table')[0].tbody.findAll('tr')
 	info = {'Date':[], 'Open':[], 'High':[], 'Low':[], 'Close':[]}
@@ -117,7 +117,7 @@ app.withdraw()
 ticker = tkSimpleDialog.askstring("Ticker","Ticker->")
 
 result = df()
-get_historical_data(ticker, 5)
+get_historical_data(ticker, 30)
 get_stats(ticker)
 get_rev(ticker)
 
@@ -129,12 +129,13 @@ while date[diff] != process_date(result['Date'][0]):
 	print date[diff], process_date(result['Date'][0])
 	diff += 1
 
-result['USD->RMB'] = tmp[diff:diff+5]
-result['USD->HKD'] = er.get_usdToHkd()[diff:diff+5]
+length = len(result)
+result['USD->RMB'] = tmp[diff:diff+length]
+result['USD->HKD'] = er.get_usdToHkd()[diff:diff+length]
 
 result['HKD->RMB'] = result['USD->HKD'] / result['USD->RMB']
 result = result.round({'HKD->RMB': 4})
 
 print result
-# path = os.getcwd().replace('\\','/')+'/1810hk.csv'
-# xiaomi.to_csv(path, index=False)
+path = os.getcwd().replace('\\','/')+'/result.csv'
+result.to_csv(path, index=False)
