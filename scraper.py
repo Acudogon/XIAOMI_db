@@ -1,8 +1,17 @@
+import exchangeRate as er
 import os
 import urllib2
 import numpy as np
 from BeautifulSoup import BeautifulSoup as bs
 from pandas import DataFrame as df
+
+from Tkinter import *
+import tkSimpleDialog
+
+def process_date(d):
+	mon,day,yr = d.replace(',','').split()
+	yr = yr[-2:]
+	return day+'-'+mon+'-'+yr
 
 def process_num(s, unit):
 	if unit == 'B':
@@ -32,41 +41,40 @@ def get_historical_data(name, number_of_days):
 		info['Low'].append(str(divs[3].span.text))
 		info['Close'].append(str(divs[4].span.text))
 	for key in info:
-		xiaomi[key] = info[key]
-	xiaomi.set_index('Date')
-	return xiaomi
+		result[key] = info[key]
+	result.set_index('Date')
 
 def get_stats(name):
 	url = "https://finance.yahoo.com/quote/" + name + "/key-statistics?p=" + name
 	rows = bs(urllib2.urlopen(url).read()).findAll('table')[0].tbody.findAll('tr')
-	tmp = [np.nan for i in xrange(len(xiaomi))]
+	tmp = [np.nan for i in xrange(len(result))]
 	for each_row in rows:
 		divs = each_row.findAll('td')
 		tmp[0] = np.nan
 		if divs[0].span.text  == 'Market Cap (intraday)':			
 			tmp[0] = process_num(divs[1].text[:-1],'B') if divs[1].text != 'N/A' else np.nan
-			xiaomi['Market Cap'] = tmp
+			result['Market Cap'] = tmp
 		elif divs[0].span.text  == 'Enterprise Value':
 			tmp[0] = process_num(divs[1].text[:-1],'B') if divs[1].text != 'N/A' else np.nan
-			xiaomi['EV'] = tmp
+			result['EV'] = tmp
 		elif divs[0].span.text  == 'Trailing P/E':
 			tmp[0] = str(divs[1].text) if divs[1].text != 'N/A' else np.nan
-			xiaomi['Trailing P/E'] = tmp
+			result['Trailing P/E'] = tmp
 		elif divs[0].span.text  == 'Forward P/E':
 			tmp[0] = str(divs[1].text) if divs[1].text != 'N/A' else np.nan
-			xiaomi['Forward P/E'] = tmp
+			result['Forward P/E'] = tmp
 		elif divs[0].span.text  == 'Price/Sales':
 			tmp[0] = str(divs[1].text) if divs[1].text != 'N/A' else np.nan
-			xiaomi['P/S'] = tmp
+			result['P/S'] = tmp
 		elif divs[0].span.text  == 'Price/Book':
 			tmp[0] = str(divs[1].text) if divs[1].text != 'N/A' else np.nan
-			xiaomi['P/B'] = tmp
+			result['P/B'] = tmp
 		elif divs[0].span.text  == 'Enterprise Value/Revenue':
 			tmp[0] = str(divs[1].text) if divs[1].text != 'N/A' else np.nan
-			xiaomi['EV/Rev'] = tmp
+			result['EV/Rev'] = tmp
 		elif divs[0].span.text  == 'Enterprise Value/EBITDA':
 			tmp[0] = str(divs[1].text) if divs[1].text != 'N/A' else np.nan
-			xiaomi['EV/EBITDA'] = tmp
+			result['EV/EBITDA'] = tmp
 		else:
 			# print divs[0].span.text
 			continue
@@ -96,17 +104,37 @@ def get_rev(name):
 			line[2].append(process_num(str(divs[3].text),'K'))
 			counter += 1
 		idx += 1
-	tmp = [np.nan for i in xrange(len(xiaomi))]
+	tmp = [np.nan for i in xrange(len(result))]
 	for e in line:
 		tmp[0] = e[1]
-		xiaomi[e[0]+'Rev'] = tmp
+		result[e[0]+'Rev'] = tmp
 		tmp[0] = e[2]
-		xiaomi[e[0]+'NetIncome'] = tmp
+		result[e[0]+'NetIncome'] = tmp
 
-xiaomi = df()
-get_historical_data('1810.hk', 5)
-get_stats('1810.HK')
-get_rev('1810.HK')
-print xiaomi
-path = os.getcwd().replace('\\','/')+'/1810hk.csv'
-xiaomi.to_csv(path, index=False)
+
+app = Tk()
+app.withdraw()
+ticker = tkSimpleDialog.askstring("Ticker","Ticker->")
+
+result = df()
+get_historical_data(ticker, 5)
+get_stats(ticker)
+get_rev(ticker)
+
+date,tmp = er.get_usdToRmb()
+diff = 0
+while date[diff] != process_date(result['Date'][0]):
+	if diff > 10:
+		break
+	print date[diff], process_date(result['Date'][0])
+	diff += 1
+
+result['USD->RMB'] = tmp[diff:diff+5]
+result['USD->HKD'] = er.get_usdToHkd()[diff:diff+5]
+
+result['HKD->RMB'] = result['USD->HKD'] / result['USD->RMB']
+result = result.round({'HKD->RMB': 4})
+
+print result
+# path = os.getcwd().replace('\\','/')+'/1810hk.csv'
+# xiaomi.to_csv(path, index=False)
